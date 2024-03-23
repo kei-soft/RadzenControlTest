@@ -1,0 +1,19 @@
+﻿@page "/"
+
+@inject NotificationService notificationService
+
+<PageTitle>Home</PageTitle>
+
+<RadzenButton Text="test" Click="@TestClick"/>
+
+@code{
+
+    [Inject]
+    private IEventAggregator? ea { get; set; }
+
+    private void TestClick()
+    {
+        ea?.GetEvent<TestEvent>().Publish("test publish");
+    }
+}
+
