@@ -1,0 +1,55 @@
+﻿@page "/tabletest"
+
+<button @onclick="AddColumn">Add Column</button>
+<button @onclick="AddRow">Add Row</button>
+<button @onclick="() => Console.WriteLine(ConvertToJson())">Convert to JSON</button>
+
+<table class="table">
+    <thead>
+        <tr>
+            @foreach (var column in columns)
+            {
+                <th>@column</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @for (int i = 0; i < tableData.Count; i++)
+        {
+            <tr>
+                @for (int j = 0; j < tableData[i].Count; j++)
+                {
+                    <td>
+                        <input type="text" @bind="tableData[i][j]" />
+                    </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+@code {
+    private List<List<string>> tableData = new List<List<string>>();
+    private List<string> columns = new List<string>();
+
+    private void AddColumn()
+    {
+        columns.Add($"Column {columns.Count + 1}");
+        foreach (var row in tableData)
+        {
+            row.Add(string.Empty); // 새 컬럼에 해당하는 셀 데이터 추가
+        }
+    }
+
+    private void AddRow()
+    {
+        tableData.Add(new List<string>(new string[columns.Count]));
+    }
+
+    private string ConvertToJson()
+    {
+        // 테이블 데이터를 JSON으로 변환
+        return System.Text.Json.JsonSerializer.Serialize(tableData);
+    }
+}

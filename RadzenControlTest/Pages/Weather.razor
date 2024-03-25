@@ -1,57 +1,52 @@
 ﻿@page "/weather"
 @inject HttpClient Http
 
-<PageTitle>Weather</PageTitle>
+<RadzenButton Text="ADD" Click=@AddRow />
+<RadzenGrid @ref="grid" TItem="IDictionary<string, object>">
+    <Columns>
 
-<h1>Weather</h1>
+        @foreach (var column in columns)
+        {
+            <RadzenDataGridColumn TItem="IDictionary<string, object>" Title="@column.Key" Type="column.Value"
+                                   Property="@GetColumnPropertyExpression(column.Key, column.Value)">
+                <Template>
+                    @context[@column.Key]
+                </Template>
+            </RadzenDataGridColumn>
+        }
 
-<p>This component demonstrates fetching data from the server.</p>
-
-@if (forecasts == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Temp. (C)</th>
-                <th>Temp. (F)</th>
-                <th>Summary</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var forecast in forecasts)
-            {
-                <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+    </Columns>
+</RadzenGrid>
 
 @code {
-    private WeatherForecast[]? forecasts;
+    private RadzenGrid<IDictionary<string, object>>? grid;
 
     protected override async Task OnInitializedAsync()
     {
-        forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json");
+        await Task.CompletedTask;
     }
 
-    public class WeatherForecast
+    public IDictionary<string, Type> columns { get; set; } = new Dictionary<string, Type>();
+
+    private void AddRow()
     {
-        public DateOnly Date { get; set; }
+        columns.Add("TEST", typeof(string));
+        StateHasChanged();
+    }
 
-        public int TemperatureC { get; set; }
+    public string GetColumnPropertyExpression(string name, Type type)
+    {
+        var expression = $@"it[""{name}""].ToString()";
 
-        public string? Summary { get; set; }
+        if (type == typeof(int))
+        {
+            return $"int.Parse({expression})";
+        }
+        else if (type == typeof(DateTime))
+        {
+            return $"DateTime.Parse({expression})";
+        }
 
-        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+        return expression;
     }
 }
