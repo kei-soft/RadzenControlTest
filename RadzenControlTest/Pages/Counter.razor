@@ -1,18 +1,16 @@
 ﻿@page "/counter"
+@using RadzenControlTest.ViewModels
+
+@inject CounterViewModel viewmodel
 
 <PageTitle>Counter</PageTitle>
 
 <h1>Counter</h1>
 
-<p role="status">Current count: @currentCount</p>
+<p role="status">Current count: @viewmodel.Count</p>
 
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+<button class="btn btn-primary" @onclick="viewmodel.IncrementCount">Click me</button>
 
 @code {
-    private int currentCount = 0;
 
-    private void IncrementCount()
-    {
-        currentCount++;
-    }
 }

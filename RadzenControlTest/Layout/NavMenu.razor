@@ -42,7 +42,6 @@
     {
         base.OnInitialized();
 
-        TestMethod("");
         // TestEvent 구독 처리
         ea?.GetEvent<TestEvent>().Subscribe(TestMethod);
     }

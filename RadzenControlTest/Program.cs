@@ -5,6 +5,8 @@ using Prism.Events;
 
 using Radzen;
 
+using RadzenControlTest.ViewModels;
+
 namespace RadzenControlTest
 {
     public class Program
@@ -14,6 +16,8 @@ namespace RadzenControlTest
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
+
+            builder.Services.AddScoped<CounterViewModel>();
 
             builder.Services.AddScoped<NotificationService>();
             builder.Services.AddScoped<DialogService>();
