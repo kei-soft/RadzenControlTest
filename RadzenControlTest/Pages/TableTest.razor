@@ -20,7 +20,8 @@
                 @for (int j = 0; j < tableData[i].Count; j++)
                 {
                     <td>
-                        <input type="text" @bind="tableData[i][j]" />
+                        <input type="text" value="@tableData[i][j]" @oninput="(item=>UpdateCell(i,j, item.Value.ToString()))" />
+                        @* @bind-value="tableData[i][j]" @oninput="(item=>UpdateCell(i,j, item.Value.ToString()))" /> *@
                     </td>
                 }
             </tr>
@@ -51,5 +52,23 @@
     {
         // 테이블 데이터를 JSON으로 변환
         return System.Text.Json.JsonSerializer.Serialize(tableData);
+    }
+
+    private void UpdateCell(int rowIndex, int columnIndex, string value)
+    {
+        try
+        {
+
+            tableData[rowIndex - 1][columnIndex - 1] = value;
+        }
+        catch(Exception ex)
+        {
+            
+        
+        }
+        // if (tableData.Count > rowIndex && tableData[rowIndex].Count > columnIndex)
+        // {
+        //     tableData[rowIndex][columnIndex] = value;
+        // }
     }
 }
