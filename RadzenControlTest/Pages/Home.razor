@@ -1,19 +1,46 @@
 ﻿@page "/"
+@using System.Text.RegularExpressions
 
 @inject NotificationService notificationService
 
 <PageTitle>Home</PageTitle>
 
 <RadzenButton Text="test" Click="@TestClick"/>
+<br />
+<br />
+<select @onchange="OnEnumSelected" style="height:30px">
+    @foreach (var value in Enum.GetValues(typeof(MyEnum)))
+    {
+        <option value="@value">@value</option>
+    }
+</select>
 
 @code{
 
     [Inject]
     private IEventAggregator? ea { get; set; }
 
+    private MyEnum selectedEnumValue;
+
+    private void OnEnumSelected(ChangeEventArgs e)
+    {
+        if (Enum.TryParse<MyEnum>(e.Value?.ToString(), out var result))
+        {
+            selectedEnumValue = result;
+        }
+    }
+
+
     private void TestClick()
     {
         ea?.GetEvent<TestEvent>().Publish("test publish");
+    }
+
+    public enum MyEnum
+    {
+        Option1,
+        Option2,
+        Option3
     }
 }
 
