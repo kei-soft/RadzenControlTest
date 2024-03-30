@@ -1,6 +1,16 @@
 ﻿@page "/radzenbutton"
 
 <RadzenButton Icon="play_arrow" title="play" IsBusy=@busy Click=@OnBusyClick />
+<RadzenButton ButtonType="ButtonType.Submit" Text="Submit"/>
+<RadzenButton ButtonType="ButtonType.Reset" Text="Reset" />
+
+<RadzenButton ButtonStyle="ButtonStyle.Primary" Text="Primary"/>
+<RadzenButton ButtonStyle="ButtonStyle.Secondary" Text="Secondary" />
+<RadzenButton ButtonStyle="ButtonStyle.Light" Text="Light" />
+<RadzenButton ButtonStyle="ButtonStyle.Success" Text="Success" />
+<RadzenButton ButtonStyle="ButtonStyle.Danger" Text="Danger" />
+<RadzenButton ButtonStyle="ButtonStyle.Warning" Text="Warning" />
+<RadzenButton ButtonStyle="ButtonStyle.Info" Text="Info" />
 
 
 @code {
