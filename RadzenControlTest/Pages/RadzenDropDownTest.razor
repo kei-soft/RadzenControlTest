@@ -1,0 +1,17 @@
+﻿@page "/radzendropdown"
+
+<RadzenDropDown Data="@devTypes" @bind-Value="@selectDevType" />
+
+@code {
+    IEnumerable<DevType> devTypes = Enum.GetValues(typeof(DevType)).Cast<DevType>().ToList();
+    DevType selectDevType = DevType.Csharp;
+
+    private enum DevType
+    {
+        Csharp,
+        Java,
+        Python,
+        Fulutter,
+        Unity,
+    }
+}

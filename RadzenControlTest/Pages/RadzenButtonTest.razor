@@ -1,0 +1,17 @@
+﻿@page "/radzenbutton"
+
+<RadzenButton Icon="play_arrow" title="play" IsBusy=@busy Click=@OnBusyClick />
+
+
+@code {
+    bool busy;
+
+    async Task OnBusyClick()
+    {
+        busy = true;
+        // Use await and Task.Delay to yield execution to Blazor and refresh the UI
+        await Task.Delay(2000);
+        // Set the busy flag to false after the long task is done
+        busy = false;
+    }
+}

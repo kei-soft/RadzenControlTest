@@ -1,0 +1,66 @@
+﻿@page "/radzengrid"
+
+<RadzenCard class="m-4" style="display: flex; align-items: center; gap: 0.5rem">
+    <RadzenCheckBox @bind-Value=@allowRowSelectOnRowClick Name="CheckBox1" />
+    <RadzenLabel Text="Allow row select on row click" Component="CheckBox1" />
+    <RadzenButton Text="Clear selected rows" Click="@(args => selectedEmployees = null)" title="Clear Selection" />
+    
+</RadzenCard>
+<RadzenDataGrid @ref="grid" AllowRowSelectOnRowClick="@allowRowSelectOnRowClick" AllowFiltering="true" FilterPopupRenderMode="PopupRenderMode.OnDemand" 
+                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="4"
+                AllowSorting="true" Data="@employees" TItem="Employee" ColumnWidth="200px"
+                SelectionMode="DataGridSelectionMode.Multiple" @bind-Value=@selectedEmployees class="m-4">
+    <Columns>
+        <RadzenDataGridColumn TItem="Employee" Width="60px" Sortable="false" Filterable="false">
+            <HeaderTemplate>
+                <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select all items" }})"
+                                Value="@(selectedEmployees == null || selectedEmployees?.Any() != true ? false : !employees.All(i => selectedEmployees.Contains(i)) ? null : employees.Any(i => selectedEmployees.Contains(i)))"
+                                Change="@(args => selectedEmployees = args == true ? employees.ToList() : null)" />
+            </HeaderTemplate>
+            <Template Context="data">
+                <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(selectedEmployees != null && selectedEmployees.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
+                                TValue="bool" Change=@(args => { if(!allowRowSelectOnRowClick) { grid.SelectRow(data); }}) />
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Employee" Property="Name" Title="Name" />
+        <RadzenDataGridColumn TItem="Employee" Property="Age" Title="Age" />
+        <RadzenDataGridColumn TItem="Employee" Property="EmployeeID" Title="Employee ID" />
+        <RadzenDataGridColumn TItem="Employee" Property="HireDate" Title="Hire Date" FormatString="{0:d}" />
+        <RadzenDataGridColumn TItem="Employee" Property="Country" Title="Country" />
+    </Columns>
+</RadzenDataGrid>
+@code {
+    bool allowRowSelectOnRowClick = true;
+    IEnumerable<Employee> employees;
+    IList<Employee> selectedEmployees;
+    RadzenDataGrid<Employee> grid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        employees = GetEmployees();
+    }
+
+    private List<Employee> GetEmployees()
+    {
+        List<Employee> employees = new List<Employee>();
+
+        employees.Add(new Employee() { Name = "A", Age = 10, EmployeeID = "001", HireDate = DateTime.Parse("2001-02-04"), Country = "서울" });
+        employees.Add(new Employee() { Name = "B", Age = 19, EmployeeID = "002", HireDate = DateTime.Parse("2001-01-06"), Country = "서울" });
+        employees.Add(new Employee() { Name = "C", Age = 20, EmployeeID = "003", HireDate = DateTime.Parse("2001-09-14"), Country = "서울" });
+        employees.Add(new Employee() { Name = "D", Age = 14, EmployeeID = "004", HireDate = DateTime.Parse("2001-06-30"), Country = "서울" });
+
+        return employees;
+    }
+
+
+    public class Employee
+    {
+        public string Name { get; set; }
+        public int Age { get; set; }
+        public string EmployeeID { get; set; }
+        public DateTime HireDate { get; set; }
+        public string Country { get; set; }
+    }
+}
