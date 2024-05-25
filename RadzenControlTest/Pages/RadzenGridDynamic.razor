@@ -1,0 +1,70 @@
+﻿@page "/radzenGridDynamic"
+@using Radzen
+@using Radzen.Blazor
+@using System.Dynamic
+@using System.Text.Json
+
+<PageTitle>Dynamic Grid</PageTitle>
+
+<RadzenGrid Data="@_data" TItem="ExpandoObject" ColumnWidth="200px" AllowSorting="false" AllowPaging="false" AllowFiltering="false" EditMode="DataGridEditMode.Single">
+    <Columns>
+        @foreach (var column in _columns)
+        {
+            <RadzenGridColumn TItem="ExpandoObject" Property="@column" Title="@column" >
+                <Template Context="data">
+                     @{
+                        var value = (data as IDictionary<string, object>)[column].ToString();
+                      }
+
+                    <RadzenTextBox @bind-Value="@value" Style="width: 100%;" />
+                </Template>
+            </RadzenGridColumn>
+        }
+    </Columns>
+</RadzenGrid>
+
+<RadzenButton Text="Add Column" Click="AddColumn" Style="margin-top: 10px;" />
+<RadzenButton Text="Export to JSON" Click="ExportToJson" Style="margin-top: 10px;" />
+
+<RadzenAlert @bind-Visible="showAlert" Severity="Radzen.AlertSeverity.Info">
+    <pre>@jsonString</pre>
+</RadzenAlert>
+
+@code {
+    private List<ExpandoObject> _data = new();
+    private List<string> _columns = new() { "Column1", "Column2" };
+    private bool showAlert = false;
+    private string jsonString = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        // 초기 데이터를 생성합니다.
+        var item1 = new ExpandoObject() as IDictionary<string, object>;
+        item1["Column1"] = "Data1";
+        item1["Column2"] = "Data2";
+
+        var item2 = new ExpandoObject() as IDictionary<string, object>;
+        item2["Column1"] = "Data3";
+        item2["Column2"] = "Data4";
+
+        _data.Add((ExpandoObject)item1);
+        _data.Add((ExpandoObject)item2);
+    }
+
+    private void AddColumn()
+    {
+        string newColumnName = $"Column{_columns.Count + 1}";
+        _columns.Add(newColumnName);
+
+        foreach (var item in _data)
+        {
+            (item as IDictionary<string, object>)[newColumnName] = string.Empty;
+        }
+    }
+
+    private void ExportToJson()
+    {
+        jsonString = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+        showAlert = true;
+    }
+}
