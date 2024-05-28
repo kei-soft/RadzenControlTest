@@ -1,74 +1,169 @@
 ﻿@page "/tabletest"
 
+@using Radzen
+@using Radzen.Blazor
+@using System.Dynamic
+@using System.Text.Json
+@implements IDisposable
+
+@inject IJSRuntime JS
+
+<script>
+    window.tableToJson = function () {
+        var data = [];
+        var headers = [];
+        var table = document.getElementById("editableTable");
+
+        // Get the headers
+        var headerCells = table.querySelectorAll("thead th");
+        for (var i = 0; i < headerCells.length; i++) {
+            headers[i] = headerCells[i].innerText;
+        }
+
+        // Get the rows
+        var rows = table.querySelectorAll("tbody tr");
+        for (var i = 0; i < rows.length; i++) {
+            var row = rows[i];
+            var cells = row.querySelectorAll("td");
+            var rowData = {};
+
+            for (var j = 0; j < cells.length; j++) {
+                var input = cells[j].querySelector("input[type='text']");
+                rowData[headers[j]] = input ? input.value : "";
+            }
+
+            data.push(rowData);
+        }
+
+        return JSON.stringify(data);
+    }
+    
+</script>
+
+<h3>Editable Table</h3>
+
 <button @onclick="AddColumn">Add Column</button>
 <button @onclick="AddRow">Add Row</button>
-<button @onclick="() => Console.WriteLine(ConvertToJson())">Convert to JSON</button>
+<button @onclick="ConvertTableToJson">Convert to JSON</button>
 
-<table class="table">
-    <thead>
-        <tr>
-            @foreach (var column in columns)
-            {
-                <th>@column</th>
-            }
-        </tr>
-    </thead>
-    <tbody>
-        @for (int i = 0; i < tableData.Count; i++)
-        {
+<div class="table-container">
+    <table id="editableTable" class="editable-table">
+        <thead>
             <tr>
-                @for (int j = 0; j < tableData[i].Count; j++)
+                @foreach (var header in Headers)
                 {
-                    <td>
-                        <input type="text" value="@tableData[i][j]" @oninput="(item=>UpdateCell(i,j, item.Value.ToString()))" />
-                        @* @bind-value="tableData[i][j]" @oninput="(item=>UpdateCell(i,j, item.Value.ToString()))" /> *@
-                    </td>
+                    <th>@header</th>
                 }
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var row in TableData)
+            {
+                <tr>
+                    @foreach (var header in Headers)
+                    {
+                        <td>
+                            <input type="text" value="@GetCellValue(row, header)"/>
+                            @* <input type="text" value="@GetCellValue(row, header)" @oninput="e => SetCellValue(row, header, e.Value)" /> *@
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
 
+<RadzenAlert Severity="Radzen.AlertSeverity.Info">
+    <pre>@jsonString</pre>
+</RadzenAlert>
 
 @code {
-    private List<List<string>> tableData = new List<List<string>>();
-    private List<string> columns = new List<string>();
+    private List<dynamic> TableData { get; set; } = new List<dynamic>();
+    private List<string> Headers { get; set; } = new List<string> { "Column1", "Column2", "Column3" };
+    private string jsonString = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        // Initialize TableData with some example data
+        for (int i = 0; i < 3; i++)
+        {
+            AddRow(i);
+        }
+    }
+
+    private string GetCellValue(dynamic row, string column)
+    {
+        var dict = (IDictionary<string, object>)row;
+        return dict.ContainsKey(column) ? dict[column]?.ToString() : string.Empty;
+    }
+
+    private void SetCellValue(dynamic row, string column, object value)
+    {
+        var dict = (IDictionary<string, object>)row;
+        dict[column] = value;
+    }
 
     private void AddColumn()
     {
-        columns.Add($"Column {columns.Count + 1}");
-        foreach (var row in tableData)
+        var newColumnName = $"Column{Headers.Count + 1}";
+        Headers.Add(newColumnName);
+
+        foreach (var row in TableData)
         {
-            row.Add(string.Empty); // 새 컬럼에 해당하는 셀 데이터 추가
+            var dict = (IDictionary<string, object>)row;
+            dict[newColumnName] = string.Empty;
         }
     }
 
     private void AddRow()
     {
-        tableData.Add(new List<string>(new string[columns.Count]));
+        dynamic newRow = new ExpandoObject();
+        var dict = (IDictionary<string, object>)newRow;
+
+        foreach (var header in Headers)
+        {
+            dict[header] = string.Empty;
+        }
+
+        TableData.Add(newRow);
     }
 
-    private string ConvertToJson()
+    private void AddRow(int index)
     {
-        // 테이블 데이터를 JSON으로 변환
-        return System.Text.Json.JsonSerializer.Serialize(tableData);
+        dynamic newRow = new ExpandoObject();
+        var dict = (IDictionary<string, object>)newRow;
+
+        foreach (var header in Headers)
+        {
+            dict[header] = string.Empty;
+        }
+
+        for (int i = 0; i < Headers.Count; i++)
+        {
+            dict[Headers[i]] = $"Value{index + 1}";
+        }
+
+        TableData.Add(newRow);
     }
 
-    private void UpdateCell(int rowIndex, int columnIndex, string value)
+    private async void ConvertTableToJson()
     {
-        try
-        {
+        string json = await JS.InvokeAsync<string>("tableToJson");
 
-            tableData[rowIndex - 1][columnIndex - 1] = value;
-        }
-        catch(Exception ex)
-        {
-            
-        
-        }
-        // if (tableData.Count > rowIndex && tableData[rowIndex].Count > columnIndex)
-        // {
-        //     tableData[rowIndex][columnIndex] = value;
-        // }
+        jsonString = PrettyPrintJson(json);
+        //var json = System.Text.Json.JsonSerializer.Serialize(TableData, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+        Console.WriteLine(jsonString); // For demo purposes, print to console
+        StateHasChanged();
+    }
+
+      private string PrettyPrintJson(string json)
+    {
+        using var jdoc = JsonDocument.Parse(json);
+        return JsonSerializer.Serialize(jdoc, new JsonSerializerOptions { WriteIndented = true });
+    }
+
+    public void Dispose()
+    {
+        // Cleanup if necessary
     }
 }
